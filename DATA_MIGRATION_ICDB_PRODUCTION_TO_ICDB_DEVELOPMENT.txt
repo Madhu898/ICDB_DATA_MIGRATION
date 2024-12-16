@@ -1,0 +1,54 @@
+ICDB LINUX SERVER
+	mysqldump --single-transaction --skip-add-locks -h10.54.209.120 -udbadmin -pIcdbProd@2023 odsbkp cmm_cadlrm_tb_bkp | mysql -h10.54.210.59 -udbadmin -pIcdbProd@2023 odsbkp
+	mysqldump --single-transaction --skip-add-locks -h<source-host> -u<username> -p<password> <source-database> <table-name> | mysql -h<target-host> -u<username> -p<password> <target-database>
+	
+	
+mysqldump:
+	Purpose:
+		This utility is used to create a logical backup of a MySQL database or specific table
+		- In this case, it dumps the contents of a specific table from the source database
+	
+Options in mysqldump:
+	- "--single-transaction": Ensures the dump is consistent by creating a snapshot at the start of the dump. Avoids locking tables during the process.
+	- "--skip-add-locks`: Prevents `mysqldump` from adding `LOCK TABLES` and `UNLOCK TABLES` statements in the dump. This reduces contention during restoration.
+	- "-h<source-host>": Specifies the source server's host address.
+	- "-u<username>": Username for authentication with the source MySQL server.
+	- "-p<password>": Password for the user
+	- "<source-database>": Name of the source database.
+	- "<table-name>": Name of the specific table being dumped.
+
+3. Pipe (|):
+	- The pipe (`|`) redirects the output of the `mysqldump` command to another command. 
+	- In this case, it streams the dump directly to the `mysql` command for import.
+
+4. mysql:
+	- The MySQL client utility used to connect to the target server and execute the SQL commands from the dump
+	
+What Does "Dumping" Mean in MySQL?
+	In the context of MySQL, dumping refers to creating a textual backup of the database or specific tables. 
+	This backup contains all the SQL statements needed to:
+		1. Recreate the **structure** (schema) of the table(s), such as `CREATE TABLE` statements.
+		2. Insert the **data** into the table(s), such as `INSERT` statements for all rows.
+	Essentially, the dump is a set of SQL commands that can be executed on another MySQL server to reconstruct the original table or database.
+	
+How It Works in Your Command ?
+	Step 1: Dumping the Table
+		The `mysqldump` command generates a dump of the table from the source server.
+		The dump includes:
+		- `CREATE TABLE` statement: To define the table structure.
+		- `INSERT` statements: To insert all data rows into the table.
+		
+	Step 2: Restoring the Table on the Target Server
+		The output of `mysqldump` is piped directly into the `mysql` client connected to the target server. 
+	The `mysql` client:
+		- Executes the `CREATE TABLE` statement, creating the table in the target database.
+		- Executes the `INSERT` statements, adding all data rows to the table
+		
+Important Notes:
+	1. Existing Table in Target Database:
+		- If the table already exists in the target database, the `CREATE TABLE` statement will fail unless you handle it explicitly (e.g., by dropping the existing table first or adding options like `--add-drop-table` to the `mysqldump` command).
+	2. Schema Mismatch:
+		- If the structure of the table in the target database is different from the source, you might encounter errors during the restore process.
+	3. Database Context:
+		- The `mysql` command specifies the target database. This ensures the table is created in the correct database.
+By combining `mysqldump` and `mysql` with a pipe, you can seamlessly migrate table structure and data from one server to another without needing intermediate files

@@ -1,3 +1,0 @@
-ICDB DEV LINUX SERVER
-	mysqldump --single-transaction --skip-add-locks -h10.54.209.120 -udbadmin -pIcdbProd@2023 odsbkp cmm_cadlrm_tb_bkp | mysql -h10.54.210.59 -udbadmin -pIcdbProd@2023 odsbkp
-	
